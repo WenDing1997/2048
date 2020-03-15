@@ -1,6 +1,6 @@
 import tkinter as tk
 import random
-import copy
+import copy, time
 
 class Application(tk.Frame):
     def __init__(self, master=None):
@@ -16,11 +16,21 @@ class Application(tk.Frame):
         self.pack()
 
     def board_init(self):
-        self.board = [[2,2,2,2],
-                      [0,2,2,2],
-                      [0,4,0,0],
-                      [0,0,4,0]]
+        self.board = [[2,0,0,0],
+                      [0,0,0,0],
+                      [0,0,0,0],
+                      [2,2,0,2]]
+        r, c = random.randint(0,99)%3, random.randint(0,99)%3
+        self.board[r][c] = 2
 
+    def add_random_tile(self):
+        empty_tiles = []
+        for r in [0,1,2,3]:
+            for c in [0,1,2,3]:
+                if self.board[r][c] == 0:
+                    empty_tiles.append((r,c))
+        r,c=random.choice(empty_tiles)
+        self.board[r][c] = 2
 
 
     def init_canvas(self):
@@ -29,6 +39,13 @@ class Application(tk.Frame):
         self.background.pack()
 
     def update_canvas(self):
+        self.add_random_tile()
+        self.draw_canvas()
+        self.background.pack()
+
+
+
+    def draw_canvas(self):
         for r in [0,1,2,3]:
             for c in [0,1,2,3]:
                 num = self.board[r][c]
@@ -36,7 +53,8 @@ class Application(tk.Frame):
                     self.draw_tile(100*(c+1), 100*(r+1), num)
                 else:
                     self.erase_tile(100*(c+1), 100*(r+1))
-        self.background.pack()
+
+
 
     def draw_tile(self, x, y, i):
         self.background.create_rectangle(x, y, x+100, y+100, fill="red")
@@ -54,16 +72,6 @@ class Application(tk.Frame):
         self.background.create_line(400, 100, 400, 500)
         self.background.create_line(500, 100, 500, 500)
 
-    def first_tile(self):
-        if random.randint() % 2 == 0:
-            # draw num in lower left tile
-            pass
-        else:
-            # lower right
-            pass
-
-
-
     def right_key(self, event):
         self.shift_right()
         self.update_canvas()
@@ -74,6 +82,7 @@ class Application(tk.Frame):
             ptr = 3
             while ptr >= 0:
                 num = self.board[r][ptr]
+                # print(new_r)
                 # cur num is not 0
                 if num != 0:
                     prev_ptr = ptr-1
@@ -81,11 +90,12 @@ class Application(tk.Frame):
                     if prev_ptr >= 0:
                         prev_num = self.board[r][prev_ptr]
                         # if prev num is 0
-                        if prev_num == 0:
-                            while prev_ptr-1 > 0 and self.board[r][prev_ptr-1] == 0:
-                                prev_ptr-=1
-                                prev_num=self.board[r][prev_ptr]
+                        while prev_ptr >= 0 and self.board[r][prev_ptr] == 0:
+                            # print("aaa")
+                            prev_ptr -= 1
+                            prev_num = self.board[r][prev_ptr] if prev_ptr >= 0 else prev_num
                         if prev_num == num:
+                            # print("debug")
                             new_r.append(num*2)
                             ptr=prev_ptr-1
                         else:
@@ -96,12 +106,10 @@ class Application(tk.Frame):
                         ptr-=1
                 else:
                     ptr-=1
-                # print(new_r)
             while len(new_r) != 4:
                 new_r.append(0)
             new_r.reverse()
             self.board[r] = new_r
-        # print(self.board)
 
     def left_key(self, event):
         flipped_board = []
