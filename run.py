@@ -13,15 +13,16 @@ class Application(tk.Frame):
         self.master.bind("<Left>", self.left_key)
         self.master.bind("<Up>", self.up_key)
         self.master.bind("<Down>", self.down_key)
+        self.new_tile = (-1,-1)
         self.pack()
 
     def board_init(self):
-        self.board = [[2,0,0,0],
+        self.board = [[0,0,0,0],
                       [0,0,0,0],
                       [0,0,0,0],
-                      [2,2,0,2]]
-        r, c = random.randint(0,99)%3, random.randint(0,99)%3
-        self.board[r][c] = 2
+                      [0,0,0,0]]
+        # r, c = random.randint(0,99)%3, random.randint(0,99)%3
+        # self.board[r][c] = 2
 
     def add_random_tile(self):
         empty_tiles = []
@@ -30,6 +31,7 @@ class Application(tk.Frame):
                 if self.board[r][c] == 0:
                     empty_tiles.append((r,c))
         r,c=random.choice(empty_tiles)
+        self.new_tile = r,c
         self.board[r][c] = 2
 
 
@@ -50,15 +52,18 @@ class Application(tk.Frame):
             for c in [0,1,2,3]:
                 num = self.board[r][c]
                 if num != 0:
-                    self.draw_tile(100*(c+1), 100*(r+1), num)
+                    if (r,c) == self.new_tile:
+                        self.draw_tile(100 * (c + 1), 100 * (r + 1), num, "magenta")
+                    else:
+                        self.draw_tile(100*(c+1), 100*(r+1), num, "cyan")
                 else:
                     self.erase_tile(100*(c+1), 100*(r+1))
 
 
 
-    def draw_tile(self, x, y, i):
-        self.background.create_rectangle(x, y, x+100, y+100, fill="red")
-        self.background.create_text(x+50, y+50, text=i, font=("Sans-serif",50))
+    def draw_tile(self, x, y, num, color):
+        self.background.create_rectangle(x, y, x+100, y+100, fill=color)
+        self.background.create_text(x+50, y+50, text=num, font=("Sans-serif",50))
 
     def draw_grid(self):
         self.background.create_line(100, 100, 500, 100)
@@ -73,10 +78,13 @@ class Application(tk.Frame):
         self.background.create_line(500, 100, 500, 500)
 
     def right_key(self, event):
+        old_board = copy.deepcopy(self.board)
         self.shift_right()
-        self.update_canvas()
+        if self.board != old_board:
+            self.update_canvas()
 
     def shift_right(self):
+
         for r in [0,1,2,3]:
             new_r = []
             ptr = 3
@@ -111,7 +119,9 @@ class Application(tk.Frame):
             new_r.reverse()
             self.board[r] = new_r
 
+
     def left_key(self, event):
+        old_board = copy.deepcopy(self.board)
         flipped_board = []
         for r in [3,2,1,0]:
             flipped_board.append(list(reversed(self.board[r])))
@@ -121,9 +131,11 @@ class Application(tk.Frame):
         for r in [3, 2, 1, 0]:
             correct_board.append(list(reversed(self.board[r])))
         self.board=correct_board
-        self.update_canvas()
+        if self.board != old_board:
+            self.update_canvas()
 
     def up_key(self, event):
+        old_board = copy.deepcopy(self.board)
         rotated_board = copy.deepcopy(self.board)
         for c in [0,1,2,3]:
             for r in [0,1,2,3]:
@@ -134,9 +146,11 @@ class Application(tk.Frame):
         for c in [0,1,2,3]:
             for r in [0,1,2,3]:
                 self.board[r][c] = copy_board[c][3-r]
-        self.update_canvas()
+        if self.board != old_board:
+            self.update_canvas()
 
     def down_key(self, event):
+        old_board = copy.deepcopy(self.board)
         rotated_board = copy.deepcopy(self.board)
         for c in [0, 1, 2, 3]:
             for r in [0, 1, 2, 3]:
@@ -147,7 +161,8 @@ class Application(tk.Frame):
         for c in [0, 1, 2, 3]:
             for r in [0, 1, 2, 3]:
                 self.board[r][c] = copy_board[3-c][r]
-        self.update_canvas()
+        if self.board != old_board:
+            self.update_canvas()
 
     def erase_tile(self, x, y):
         self.background.create_rectangle(x, y, x + 100, y + 100, fill="yellow")
